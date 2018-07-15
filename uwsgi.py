@@ -1,1 +1,1 @@
-from app import application
+from core import application
