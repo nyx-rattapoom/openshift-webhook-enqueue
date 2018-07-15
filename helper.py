@@ -10,18 +10,18 @@ def get_headers_dict(headers):
     return headers_dict
 
 
-def send_queue(message):
-    if isinstance(message, dict):
-        message = json.dumps(message)
-
+def get_amqp_params():
     url = os.environ.get('CLOUDAMQP_URL', 'amqp://dev@localhost/line-api-enqueue')
     params = pika.URLParameters(url)
     params.socket_timeout = 5
+    return params
 
-    connection = pika.BlockingConnection(params)
 
-    channel = connection.channel()
+def send_queue(fpika, message):
+    if isinstance(message, dict):
+        message = json.dumps(message)
+
+    channel = fpika.channel()
     channel.queue_declare(queue='line')
     channel.basic_publish(exchange='', routing_key='line', body=message)
-
-    connection.close()
+    fpika.return_channel(channel)
